@@ -1,0 +1,138 @@
+<!-- ////////////  ПОДКЛЮЧЕНИЕ   //////////// -->
+
+<!-- 1) Объявляем модуль в шапке основного макета -->
+<?
+require $_SERVER['DOCUMENT_ROOT'].'/geo_module.php';
+?>
+
+<!-- ........ -->
+
+<?
+if (Core::moduleIsActive('shop') && isset(Core_Page::instance()->libParams['shopId'])) { // Проверка меты для магазина
+?>
+	<title><?php Core_Page::instance()->showTitle();?></title>
+	<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
+	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
+<?
+} else if(Core::moduleIsActive('informationsystem') && isset(Core_Page::instance()->libParams['informationsystemId'])) {  // Проверка меты для ИС
+?>
+	<title><?php Core_Page::instance()->showTitle();?></title>
+	<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
+	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
+<?
+} else {  // Проверка меты для статики
+?>
+	<title><?php Core_Page::instance()->showTitle(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?></title>
+	<meta name="description" content="<?php Core_Page::instance()->showDescription(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
+	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords();  echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
+<?
+}
+?>
+
+<!-- 2) Ставим проверку на выпадающий список с городами. Если это select, то оборачиваем его в form: -->
+<form action="/" method="POST">
+	<select size="1" name="city_choose" onchange="$(this).parent('form').submit();">
+		<option selected value="Брянск">Брянск</option>
+		<option value="Москва">Москва</option>
+	</select>
+</form>
+
+<!-- 3) Далее определяется текущий город пользователя:  -->
+<?
+	if (isset($_SESSION['current_city'])){
+		echo $_SESSION['current_city']; // Показываваем город из сессии
+		$city_name = $_SESSION['current_city'];
+	}else{
+		if (!is_null($oGeoData))
+		{
+			echo $city_name;// Показываваем город из GeoIP
+		}else{
+			$_SESSION['current_city'] = 'Брянск'; // Задаем сами, если город не обнаружен
+			$city_name = 'Брянск';
+			echo 'Брянск';
+		}
+	}
+?>
+
+<!-- 
+4) Если город выбран из списка, то он заносится в переменную из сессии, если сессия пуста - определяется GeoIP и заносится в переменную. Если и оно не дало результатов, то город поумолчанию - Брянск.
+Пример с проекта Адаптика: 
+-->
+<select size="1" name="city_choose" onchange="$(this).parent('form').submit();">
+	<?
+		if (isset($_SESSION['current_city'])){
+			echo $_SESSION['current_city'];
+			$city_name = $_SESSION['current_city'];
+			echo "<option selected value='$city_name'>Текущий город: $city_name</option>";
+		}else{
+			if (!is_null($oGeoData))
+			{
+				echo $city_name;
+				echo "<option selected value='$city_name'>Текущий город: $city_name</option>";
+			}else{
+				$_SESSION['current_city'] = 'Брянск';
+				$city_name = 'Брянск';
+				echo "<option selected value='Брянск'>Текущий город: Брянск</option>";
+			}
+		}
+	?>
+	<option value="Брянск">Брянск</option>
+	<option value="Москва">Москва</option>
+</select>
+
+<!-- 5) После того, как текущий город установлен в переменные, необходимо сделать проверку для контактных данных: -->
+<?
+	if($city_name == "Брянск"){
+?>
+<!-- HTML-код для вывода информации о Брянске -->
+<?
+	} elseif($city_name == "Москва"){ 
+?>
+<!-- HTML-код для вывода информации о Москве -->
+<?
+	}
+?>
+
+
+<!-- ////////////  ДИНАМИЧЕСКИЕ СИСТЕМЫ   //////////// -->
+
+<!-- Для того, чтобы просклонять город, необходимо дописать специальную переменную:  -->
+<? echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>
+
+<!-- Для того, чтобы добавить GeoIP в динамические системы, в настройках ТДС необходимо объявить модуль: -->
+
+<?
+require $_SERVER['DOCUMENT_ROOT'].'/geo_module.php';
+?> 
+
+<!-- И заменить код генерации мета-информации в файле meta_view.php -->
+
+
+
+
+<!-- ////////////  ФОРМЫ   //////////// -->
+
+<!-- Для передачи текущего города пользователя в форму надо добавить следующий код:  -->
+<input type="hidden" name="geoip_city" value="<?=$city_name;?>">
+
+<!-- А в обработчик PHP добавить к другим полям при выводе: -->
+<?
+if($key == 'geoip_city') {
+	$body .= "Город пользователя: ";
+	$body .= htmlspecialchars($value);
+	$body .= "\n<br>";
+}	
+?>
+
+
+
+
+
+
+
+
+
+
+
+
+

@@ -18,6 +18,7 @@ if (isset($_SESSION['current_city'])){
 	}
 }
 
+// Функция склонение города
 function morpher_inflect($text, $padeg)
 {
 	$credentials = array('Username'=>'test', 
@@ -41,7 +42,12 @@ function morpher_inflect($text, $padeg)
 	return $singular[$padeg];
 }
 
+// Склонение города
 if (isset($city_name)){
 	$city_nameR = morpher_inflect($city_name, 'Р');
 	$city_nameP = morpher_inflect($city_name, 'П');
 }
+
+// Вступительная фраза перед названием города
+$prePhrase = array("phrase1" => "купить в",
+                "phrase2" => "заказать в");
