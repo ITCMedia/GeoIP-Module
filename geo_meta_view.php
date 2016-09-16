@@ -1,8 +1,8 @@
 <?
 
 // Чтобы сделать нормальное отображение меты, необходимо заменить исходный код на данный в "Настройках макета" ТДС магазина
-$aTitle = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name)); // Добавлено название сайта из настроек CMS
-$aDescription = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name)); // Добавлено название сайта из настроек CMS
+$aTitle = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oShop->name); // Добавлено название сайта из настроек CMS
+$aDescription = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oShop->name); // Добавлено название сайта из настроек CMS
 $aKeywords = array();
 
 if (!is_null($Shop_Controller_Show->tag) && Core::moduleIsActive('tag'))
@@ -79,8 +79,8 @@ Core_Page::instance()->object = $Shop_Controller_Show;
 
 
 // Чтобы сделать нормальное отображение меты, необходимо заменить исходный код на данный в "Настройках макета" ТДС Инфосистемы
-$aTitle = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name)); // Добавлено название сайта из настроек CMS
-$aDescription = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name)); // Добавлено название сайта из настроек CMS
+$aTitle = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oInformationsystem->name); // Добавлено название сайта из настроек CMS
+$aDescription = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oInformationsystem->name); // Добавлено название сайта из настроек CMS
 $aKeywords = array();
 
 if (!is_null($Informationsystem_Controller_Show->tag) && Core::moduleIsActive('tag'))

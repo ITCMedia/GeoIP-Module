@@ -1,21 +1,50 @@
 <?
 $sIp = Core_Array::get($_SERVER, 'REMOTE_ADDR', Core_Array::get($_SERVER, 'HTTP_X_FORWARDED_FOR', '127.0.0.1'));
 $oGeoData = Core_Geoip::instance()->getGeoData($sIp);
-$city_name = Core_Entity::factory('Shop_Country_Location_City', $oGeoData->cityId)->name;
 if (isset($_POST['city_choose'])) {$choosenCity = $_POST['city_choose'];}
 if (!empty($choosenCity)) {$_SESSION['current_city'] = $choosenCity;}
 
 if (isset($_SESSION['current_city'])){
-	//echo $_SESSION['current_city'];
 	$city_name = $_SESSION['current_city'];
 }else{
 	if (!is_null($oGeoData))
 	{
-		//echo $city_name;
+		$city_name = Core_Entity::factory('Shop_Country_Location_City', $oGeoData->cityId)->name;
 	}else{
 		$_SESSION['current_city'] = 'Брянск';
 		$city_name = 'Брянск';
 	}
+}
+if (isset($_POST['city_choose'])){
+	switch ($_POST['city_choose']) {
+		case 'Брянск' :
+			header('HTTP/1.1 200 OK');
+			header('Location: http://bryansk.' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); // Указан уровень 3 - т.к тестовый домен трехуровневый
+			exit();
+			break;
+
+		case 'Москва' :
+			header('HTTP/1.1 200 OK');
+			header('Location: http://' . extractDomain ($_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], 3), true, 301);
+			exit();
+			// break;
+    }
+}
+
+// Функция выделения основного домена сайта для редиректа
+function extractDomain($host, $level = 2, $ignoreWWW = false) { //  Уровень означает уровень домена - site.ru - 2х-уровневый
+    $parts = explode(".", $host);
+    if($ignoreWWW and $parts[0] == 'www') unset($parts[0]);
+    $parts = array_slice($parts, -$level);
+    return implode(".", $parts);
+}
+
+// Функция выделения поддомена сайта 
+function getSubDomain($host, $level = -2) { //  Уровень означает уровень домена - level.site.ru - результат: level
+	$tmp = explode('.', $host);
+	$tmp = array_slice($tmp, 0, $level);
+	$str = implode(".", $tmp);
+	return $str;
 }
 
 // Функция склонение города
