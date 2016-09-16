@@ -15,21 +15,6 @@ if (isset($_SESSION['current_city'])){
 		$city_name = 'Брянск';
 	}
 }
-if (isset($_POST['city_choose'])){
-	switch ($_POST['city_choose']) {
-		case 'Брянск' :
-			header('HTTP/1.1 200 OK');
-			header('Location: http://bryansk.' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); // Указан уровень 3 - т.к тестовый домен трехуровневый
-			exit();
-			break;
-
-		case 'Москва' :
-			header('HTTP/1.1 200 OK');
-			header('Location: http://' . extractDomain ($_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'], 3), true, 301);
-			exit();
-			// break;
-    }
-}
 
 // Функция выделения основного домена сайта для редиректа
 function extractDomain($host, $level = 2, $ignoreWWW = false) { //  Уровень означает уровень домена - site.ru - 2х-уровневый
@@ -80,3 +65,34 @@ if (isset($city_name)){
 // Вступительная фраза перед названием города
 $prePhrase = array("phrase1" => "купить в",
                 "phrase2" => "заказать в");
+
+// Функция редиректа на целевой домен		
+function changeDomain($region){
+	switch ($region) {
+		case 'Брянск' :
+			header('HTTP/1.1 200 OK');
+			header('Location: http://bryansk.' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); // Указан уровень 3 - т.к тестовый домен трехуровневый
+			exit();
+			break; 
+
+		case 'Казань' :
+			header('HTTP/1.1 200 OK');
+			header('Location: http://kazan.' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); // Указан уровень 3 - т.к тестовый домен трехуровневый
+			exit();
+			break; 
+
+		case 'Москва' :
+			header('HTTP/1.1 200 OK');
+			header('Location: http://' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); // Указан уровень 3 - т.к тестовый домен трехуровневый
+			exit();
+			break; 
+	}
+}
+// Редирект при выборе города из выпадающего списка в форме
+if (isset($_POST['city_choose'])){
+	changeDomain($_POST['city_choose']);
+}
+
+// if($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 3)){ // Проверяем, что если не на основном домене
+	// changeDomain($city_name);
+// }
