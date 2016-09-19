@@ -19,9 +19,10 @@ $oSite = Core_Entity::factory('Site')->getByAlias(Core::$url['host']);
 
 $oSite_Alias = $oSite->getCurrentAlias();
 
-if(getSubDomain($_SERVER['HTTP_HOST'], -3) == "bryansk"){
-	$oSite->getCurrentAlias()->name = 'bryansk.' . $oSite->getCurrentAlias()->name;
+if(getSubDomain($_SERVER['HTTP_HOST'], -3) != ''){
+	$oSite->getCurrentAlias()->name = getSubDomain($_SERVER['HTTP_HOST'], -3) . '.' . $oSite->getCurrentAlias()->name;
 }
+
 
 if (is_null($oSite_Alias))
 {
