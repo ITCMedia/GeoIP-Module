@@ -28,11 +28,15 @@ if (Core::moduleIsActive('shop') && isset(Core_Page::instance()->libParams['shop
 <?
 }
 ?>
+<?php putRelCanonical($city_name); ?>
 
 <!-- 2) Ставим проверку на выпадающий список с городами. Если это select, то оборачиваем его в form. Action выполняется на текущей странице -->
-<form action="./" method="POST">
+<form action="<?=$_SERVER['REQUEST_URI'];?>" method="POST">
 	<select size="1" name="city_choose" onchange="$(this).parent('form').submit();">
-		<option selected value="Брянск">Брянск</option>
+		<?
+			echo "<option value='$city_name'>Текущий город: $city_name</option>";
+		?>
+		<option value="Брянск">Брянск</option>
 		<option value="Москва">Москва</option>
 	</select>
 </form>
@@ -217,8 +221,8 @@ robots.txt для регионов необходимо разместить в 
 	RewriteEngine On
 	RewriteBase /
 	
-	# Редирект роботса для домена bryansk.adaptika.tmweb.ru
-	RewriteCond %{HTTP_HOST} bryansk.adaptika.tmweb.ru [NC]
+	# Редирект роботса для домена bryansk.your.domain.ru
+	RewriteCond %{HTTP_HOST} bryansk.your.domain.ru [NC]
 	RewriteRule ^robots.txt /bryansk/robots.txt [L]
 
 	RewriteCond %{REQUEST_FILENAME} !-f
