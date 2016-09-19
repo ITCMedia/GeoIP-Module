@@ -196,12 +196,12 @@ if($key == 'geoip_city') {
 <? $oSite_Alias = $oSite->getCurrentAlias(); ?>
 <!-- Необходимо прописать проверку на поддомен -->
 <?
-if(getSubDomain($_SERVER['HTTP_HOST'], -3) == "bryansk"){ // Уровень вложенности зависит от уровня домена
-	$oSite->getCurrentAlias()->name = 'bryansk.' . $oSite->getCurrentAlias()->name;
+if(getSubDomain($_SERVER['HTTP_HOST'], -3) != ''){
+	$oSite->getCurrentAlias()->name = getSubDomain($_SERVER['HTTP_HOST'], -3) . '.' . $oSite->getCurrentAlias()->name;
 }
 ?>
 <!-- 
-Которая проверяет, что, если у нас адрес сайта - http://bryansk.site.tmweb.ru, то с помощью функции getSubDomain() мы выделим поддомен и если поддомен соответствует нами проверенному, то дописываем этот поддомен в карту сайта 
+Которая проверяет, что, если у нас существует поддомен, то с помощью функции getSubDomain() мы выделим поддомен и допишем этот поддомен в карту сайта 
 -->
 
 

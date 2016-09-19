@@ -1,18 +1,21 @@
 <?
 $sIp = Core_Array::get($_SERVER, 'REMOTE_ADDR', Core_Array::get($_SERVER, 'HTTP_X_FORWARDED_FOR', '127.0.0.1'));
-$oGeoData = Core_Geoip::instance()->getGeoData($sIp);
-if (isset($_POST['city_choose'])) {$choosenCity = $_POST['city_choose'];}
-if (!empty($choosenCity)) {$_SESSION['current_city'] = $choosenCity;}
+if (!is_null($sIp))
+	$oGeoData = Core_Geoip::instance()->getGeoData($sIp);
 
-if (isset($_SESSION['current_city'])){
-	$city_name = $_SESSION['current_city'];
+if (isset($_POST['city_choose'])) {$choosenCity = $_POST['city_choose'];}
+if (!empty($choosenCity)) {
+	setcookie('current_city', $choosenCity, time() + 3600 * 24 * 365, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 3)); // Установка куки на доменное имя
+}
+
+if (isset($_COOKIE['current_city'])){
+	$city_name = $_COOKIE['current_city']; // Если существуют куки, устанавливаем их
 }else{
 	if (!is_null($oGeoData))
 	{
-		$city_name = Core_Entity::factory('Shop_Country_Location_City', $oGeoData->cityId)->name;
+		$city_name = Core_Entity::factory('Shop_Country_Location_City', $oGeoData->cityId)->name; // Если кук нет, показывам, что получил GeoIP
 	}else{
-		$_SESSION['current_city'] = 'Брянск';
-		$city_name = 'Брянск';
+		$city_name = 'Брянск'; // Если данных с GeoIP нет - выводим дефолтный город
 	}
 }
 
@@ -32,34 +35,36 @@ function getSubDomain($host, $level = -2) { //  Уровень означает 
 	return $str;
 }
 
-// Функция склонение города
+// Функция склонение города с проверкой на доступность сервиса
 function morpher_inflect($text, $padeg)
 {
-	$credentials = array('Username'=>'test', 
-						 'Password'=>'test');
-
-	$header = new SOAPHeader('http://morpher.ru/', 
-						 'Credentials', $credentials);        
-
-	$url = 'http://morpher.ru/WebService.asmx?WSDL';
-
-	$client = new SoapClient($url); 
-
-	$client->__setSoapHeaders($header);
-
-	$params = array('parameters'=>array('s'=>$text));
-
-	$result = (array) $client->__soapCall('GetXml', $params); 
-
-	$singular = (array) $result['GetXmlResult']; 
-
-	return $singular[$padeg];
+	if (function_exists('get_headers')){ 
+		$check_url = get_headers('http://morpher.ru/');
+		if (strpos($check_url[0],'200')) {
+			$credentials = array('Username'=>'test', 
+								 'Password'=>'test');
+			$header = new SOAPHeader('http://morpher.ru/', 
+								 'Credentials', $credentials);        
+			$url = 'http://morpher.ru/WebService.asmx?WSDL';
+			$client = new SoapClient($url); 
+			$client->__setSoapHeaders($header);
+			$params = array('parameters'=>array('s'=>$text));
+			$result = (array) $client->__soapCall('GetXml', $params); 
+			$singular = (array) $result['GetXmlResult']; 
+			return $singular[$padeg];
+		} else {
+			return false;
+		}
+	}
 }
 
 // Склонение города
-if (isset($city_name)){
+if (isset($city_name) && !is_null($oGeoData) && function_exists('morpher_inflect')){
 	$city_nameR = morpher_inflect($city_name, 'Р');
 	$city_nameP = morpher_inflect($city_name, 'П');
+} else {
+	$city_nameR = 'Брянска'; // Дефолтные города, если GeoIP недоступен
+	$city_nameP = 'Брянске';	
 }
 
 // Вступительная фраза перед названием города
@@ -88,6 +93,7 @@ function changeDomain($region){
 			break; 
 	}
 }
+
 // Редирект при выборе города из выпадающего списка в форме
 if (isset($_POST['city_choose'])){
 	changeDomain($_POST['city_choose']);
@@ -96,3 +102,4 @@ if (isset($_POST['city_choose'])){
 // if($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 3)){ // Проверяем, что если не на основном домене
 	// changeDomain($city_name);
 // }
+
