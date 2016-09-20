@@ -43,48 +43,19 @@ if (Core::moduleIsActive('shop') && isset(Core_Page::instance()->libParams['shop
 
 <!-- 3) Далее определяется текущий город пользователя:  -->
 <?
-	if (isset($_SESSION['current_city'])){
-		echo $_SESSION['current_city']; // Показываваем город из сессии
-		$city_name = $_SESSION['current_city'];
+	if (isset($_COOKIE['current_city'])){
+		$city_name = $_COOKIE['current_city']; // Если существуют куки, устанавливаем их
 	}else{
 		if (!is_null($oGeoData))
 		{
-			echo $city_name;// Показываваем город из GeoIP
+			$city_name = Core_Entity::factory('Shop_Country_Location_City', $oGeoData->cityId)->name; // Если кук нет, показывам, что получил GeoIP
 		}else{
-			$_SESSION['current_city'] = 'Брянск'; // Задаем сами, если город не обнаружен
-			$city_name = 'Брянск';
-			echo 'Брянск';
+			$city_name = 'Москва'; // Если данных с GeoIP нет - выводим дефолтный город
 		}
 	}
 ?>
 
-<!-- 
-4) Если город выбран из списка, то он заносится в переменную из сессии, если сессия пуста - определяется GeoIP и заносится в переменную. Если и оно не дало результатов, то город поумолчанию - Брянск.
-Пример с проекта Адаптика: 
--->
-<select size="1" name="city_choose" onchange="$(this).parent('form').submit();">
-	<?
-		if (isset($_SESSION['current_city'])){
-			echo $_SESSION['current_city'];
-			$city_name = $_SESSION['current_city'];
-			echo "<option selected value='$city_name'>Текущий город: $city_name</option>";
-		}else{
-			if (!is_null($oGeoData))
-			{
-				echo $city_name;
-				echo "<option selected value='$city_name'>Текущий город: $city_name</option>";
-			}else{
-				$_SESSION['current_city'] = 'Брянск';
-				$city_name = 'Брянск';
-				echo "<option selected value='Брянск'>Текущий город: Брянск</option>";
-			}
-		}
-	?>
-	<option value="Брянск">Брянск</option>
-	<option value="Москва">Москва</option>
-</select>
-
-<!-- 5) После того, как текущий город установлен в переменные, необходимо сделать проверку для контактных данных: -->
+<!-- 4) После того, как текущий город установлен в переменные, необходимо сделать проверку для контактных данных и прочего -->
 <?
 	if($city_name == "Брянск"){
 ?>
