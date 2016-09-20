@@ -133,3 +133,24 @@ if (isset($_POST['city_choose'])){
 if(($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 3)) && isset($_COOKIE['current_city'])){ 
 	changeDomain($_COOKIE['current_city']);
 } 
+
+// Проверка, что страница не состоит в списке на невывод меты
+function checkRestricted() {
+	$found = 0;
+	if (file_exists("links.txt")){
+		$linksFile = array();
+		$linksFile = file("links.txt", FILE_IGNORE_NEW_LINES);
+		if ($linksFile) {
+			foreach($linksFile as $row) {
+				if ($_SERVER['REQUEST_URI'] == $row){
+					$found = 1;
+					break;
+				}
+			}
+		}
+	}
+	if($found == 0)
+		return true;
+	else 
+		return false;
+}

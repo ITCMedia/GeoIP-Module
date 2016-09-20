@@ -20,11 +20,17 @@ if (Core::moduleIsActive('shop') && isset(Core_Page::instance()->libParams['shop
 	<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
 	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
 <?
-} else {  // Проверка меты для статики
+} else if(checkRestricted()) {  // Проверка меты для статики
 ?>
 	<title><?php Core_Page::instance()->showTitle(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?></title>
 	<meta name="description" content="<?php Core_Page::instance()->showDescription(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
 	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords();  echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
+<?
+} else { // Вывод меты, если страница в стоп-листе
+?>
+	<title><?php Core_Page::instance()->showTitle(); ?></title>
+	<meta name="description" content="<?php Core_Page::instance()->showDescription(); ?>" />
+	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords(); ?>" />
 <?
 }
 ?>
@@ -102,8 +108,13 @@ $Shop_Controller_Show->addEntity(
 Для обновления генерации мета-информации надо заменить код генерации из файла meta_view.php 
 Чистая мета находится в файле clear_meta_view.php
 Мета для конкретной Информационной системы, например, Акции, находится в файле meta_view_current_IS.php. Тут необходимо будет указать требуемый ID ИС
+Чтобы добавить в ТДС проверку на запрет вывода гео-данных в мету, необходимо в прописать следующую строку
 -->
-
+<?
+if(checkRestricted()) {
+...
+}
+?>
 <!-- Далее, при работе с XSL у нас имеется сущность city_name, родитель которой непосредственно shop (это надо учитывать при формировании проверок, чтобы указывать верный путь к переменной) -->
 <xsl:value-of select=".//city_name" />
 
@@ -201,3 +212,10 @@ robots.txt для регионов необходимо разместить в 
 	RewriteRule ^(.*)$ /index.php
 
 </IfModule>
+
+
+<!-- ////////////  ОТКЛЮЧЕНИЕ ГЕО-ПРИВЯЗКИ В МЕТЕ   //////////// -->
+
+<!-- Для того, чтобы указанать страницы, на которых необходимо отключить отображение мета-информации с гео-привязкой, в файл links.txt в корне сайта нужно прописать список ссылок. 1 ссылка на 1 строке. Пример -->
+/otzyvy/
+/kontakty/
