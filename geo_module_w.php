@@ -121,7 +121,7 @@ function changeDomain($region){
 	}
 }
 
-// Проверка, что страница не состоит в списке на невывод меты
+// Проверка, что страница не состоит в списке на невывод меты (функция больше не нужна после обновления версии 1.7)
 function checkRestricted() {
 	$found = 0;
 	if (file_exists("links.txt")){
@@ -142,6 +142,14 @@ function checkRestricted() {
 		return false;
 }
 
+// Автозамена города для мета-данных
+function keyReplace($string, $city_nameP, $city_nameR, $city_name){
+	$string = str_replace("*Городе*", $city_nameP, $string);
+	$string = str_replace("*Города*", $city_nameR, $string);
+	$string = str_replace("*Город*", $city_name, $string);
+	echo $string;
+} 
+
 // Редирект при выборе города из выпадающего списка в форме
 if (isset($_POST['city_choose'])){
 	changeDomain($choosenCity);
@@ -151,8 +159,3 @@ if (isset($_POST['city_choose'])){
 if(($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 3)) && isset($_COOKIE['current_city'])){ 
 	changeDomain($_COOKIE['current_city']);
 } 
-
-// Вступительная фраза перед названием города
-$prePhrase = array("phrase1" => "в",
-                "phrase2" => "купить в",
-                "phrase3" => "заказать в");
