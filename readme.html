@@ -1,3 +1,22 @@
+<!-- ////////////  ПРИНЦИП ФОРМИРОВАНИЯ МЕТЫ   //////////// -->
+<!-- 
+Исходная мета: 
+Тайтл: Окна ПВХ (пластиковые) в Брянске по выгодным ценам :: Сайт оконной компании
+Деск: Качественные пластиковые окна в Брянске по доступным ценам от компании Сайт оконной компании. Звоните по телефону  +7 (4832) 11-22-33.
+Ключи: окна пвх в брянске цены, пластиковые окна брянск, окна пластиковые, окна пвх,купить окна, окна пвх купить, купить окна брянск, монтаж окон брянск
+
+Ключевые слова:
+*Город* - Брянск 
+*Городе* - Брянске
+*Города* - Брянска
+
+Мета для сайта: 
+Тайтл: Окна ПВХ (пластиковые) в *Городе* по выгодным ценам :: Сайт оконной компании
+Деск: Качественные пластиковые окна в *Городе* по доступным ценам от компании Сайт оконной компании. Звоните по телефону  +7 (4832) 11-22-33.
+Ключи: окна пвх в *Городе* цены, пластиковые окна *Город*, окна пластиковые, окна пвх,купить окна, окна пвх купить, заказать окно в *Городе*, купить окна *Город*, монтаж окон *Города*
+-->
+
+
 <!-- ////////////  ПОДКЛЮЧЕНИЕ   //////////// -->
 
 <!-- 0) Залить на сервер папку modules со всем ее содержимым -->
@@ -9,33 +28,10 @@ require $_SERVER['DOCUMENT_ROOT'].'/geo_module.php';
 
 <!-- ........ -->
 
-<?
-if (Core::moduleIsActive('shop') && isset(Core_Page::instance()->libParams['shopId'])) { // Проверка меты для магазина
-?>
-	<title><?php Core_Page::instance()->showTitle();?></title>
-	<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
-	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
-<?
-} else if(Core::moduleIsActive('informationsystem') && isset(Core_Page::instance()->libParams['informationsystemId'])) {  // Проверка меты для ИС
-?>
-	<title><?php Core_Page::instance()->showTitle();?></title>
-	<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
-	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
-<?
-} else if(checkRestricted()) {  // Проверка меты для статики
-?>
-	<title><?php Core_Page::instance()->showTitle(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?></title>
-	<meta name="description" content="<?php Core_Page::instance()->showDescription(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
-	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords();  echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
-<?
-} else { // Вывод меты, если страница в стоп-листе
-?>
-	<title><?php Core_Page::instance()->showTitle(); ?></title>
-	<meta name="description" content="<?php Core_Page::instance()->showDescription(); ?>" />
-	<meta name="keywords" content="<?php Core_Page::instance()->showKeywords(); ?>" />
-<?
-}
-?>
+<title><?php keyReplace(Core_Page::instance()->title, $city_nameP, $city_nameR, $city_name); ?></title>
+<meta name="description" content="<?php keyReplace(Core_Page::instance()->description, $city_nameP, $city_nameR, $city_name); ?>" />
+<meta name="keywords" content="<?php keyReplace(Core_Page::instance()->keywords, $city_nameP, $city_nameR, $city_name); ?>" />
+
 <?php putRelCanonical($city_name); ?>
 
 <!-- 2) Ставим проверку на выпадающий список с городами. Если это select, то оборачиваем его в form. Action выполняется на текущей странице -->
@@ -111,14 +107,9 @@ $Shop_Controller_Show->addEntity(
 <!-- 
 Для обновления генерации мета-информации надо заменить код генерации из файла meta_view.php 
 Чистая мета находится в файле clear_meta_view.php
-Мета для конкретной Информационной системы, например, Акции, находится в файле meta_view_current_IS.php. Тут необходимо будет указать требуемый ID ИС
-Чтобы добавить в ТДС проверку на запрет вывода гео-данных в мету, необходимо в прописать следующую строку
 -->
-<?
-if(checkRestricted()) {
-...
-}
-?>
+
+
 <!-- Далее, при работе с XSL у нас имеется сущность city_name, родитель которой непосредственно shop (это надо учитывать при формировании проверок, чтобы указывать верный путь к переменной) -->
 <xsl:value-of select=".//city_name" />
 
@@ -211,10 +202,7 @@ robots.txt для регионов необходимо разместить в 
 	RewriteCond %{HTTP_HOST} bryansk.your.domain.ru [NC]
 	RewriteRule ^robots.txt /bryansk/robots.txt [L]
 
-	RewriteCond %{REQUEST_FILENAME} !-f
-	RewriteCond %{REQUEST_FILENAME} !-d
-	RewriteRule ^(.*)$ /index.php
-
+	# Дальнейший код в этом блоке 
 </IfModule>
 
 

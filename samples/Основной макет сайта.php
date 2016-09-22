@@ -6,33 +6,9 @@ require $_SERVER['DOCUMENT_ROOT'].'/geo_module.php';
 <html xmlns="http://www.w3.org/1999/xhtml">
 	<head>
 
-		<?
-			if (Core::moduleIsActive('shop') && isset(Core_Page::instance()->libParams['shopId'])) { // Проверка меты для магазина
-		?>
-		<title><?php Core_Page::instance()->showTitle();?></title>
-		<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
-		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
-		<?
-			} else if(Core::moduleIsActive('informationsystem') && isset(Core_Page::instance()->libParams['informationsystemId'])) {  // Проверка меты для ИС
-		?>
-		<title><?php Core_Page::instance()->showTitle();?></title>
-		<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
-		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
-		<?
-			} else if(checkRestricted()) {  // Проверка меты для статики
-		?>
-		<title><?php Core_Page::instance()->showTitle(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?></title>
-		<meta name="description" content="<?php Core_Page::instance()->showDescription(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
-		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords();  echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
-		<?
-			} else { // Вывод меты, если страница в стоп-листе
-		?>
-		<title><?php Core_Page::instance()->showTitle(); ?></title>
-		<meta name="description" content="<?php Core_Page::instance()->showDescription(); ?>" />
-		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords(); ?>" />
-		<?
-			}
-		?>
+		<title><?php keyReplace(Core_Page::instance()->title, $city_nameP, $city_nameR, $city_name); ?></title>
+		<meta name="description" content="<?php keyReplace(Core_Page::instance()->description, $city_nameP, $city_nameR, $city_name); ?>" />
+		<meta name="keywords" content="<?php keyReplace(Core_Page::instance()->keywords, $city_nameP, $city_nameR, $city_name); ?>" />
 
 		<meta content="text/html; charset=<?php echo SITE_CODING?>" http-equiv="Content-Type" />
 		<meta http-equiv="X-UA-Compatible" content="IE=edge" />
