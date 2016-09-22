@@ -116,22 +116,22 @@ if (!is_null(Core_Array::getGet('vote')))
 	}
 }
 
-if($oInformationsystem->id == 15){ // Подключение города к мете, если это ИС Акции
-	
-	$aTitle = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oInformationsystem->name); // Добавлено название сайта из настроек CMS
-	$aDescription = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oInformationsystem->name); // Добавлено название сайта из настроек CMS
-	$aKeywords = array();
+$aTitle = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oInformationsystem->name); // Добавлено название сайта из настроек CMS
+$aDescription = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oInformationsystem->name); // Добавлено название сайта из настроек CMS
+$aKeywords = array();
 
-	if (!is_null($Informationsystem_Controller_Show->tag) && Core::moduleIsActive('tag'))
+if (!is_null($Informationsystem_Controller_Show->tag) && Core::moduleIsActive('tag'))
+{
+	$oTag = Core_Entity::factory('Tag')->getByPath($Informationsystem_Controller_Show->tag);
+	if ($oTag)
 	{
-		$oTag = Core_Entity::factory('Tag')->getByPath($Informationsystem_Controller_Show->tag);
-		if ($oTag)
-		{
-			$aTitle[] = $oTag->seo_title != '' ? $oTag->seo_title : Core::_('Informationsystem.tag', $oTag->name);
-			$aDescription[] = $oTag->seo_description != '' ? $oTag->seo_description : $oTag->name;
-			$aKeywords[] = $oTag->seo_keywords != '' ? $oTag->seo_keywords : $oTag->name;
-		}
+		$aTitle[] = $oTag->seo_title != '' ? $oTag->seo_title : Core::_('Informationsystem.tag', $oTag->name);
+		$aDescription[] = $oTag->seo_description != '' ? $oTag->seo_description : $oTag->name;
+		$aKeywords[] = $oTag->seo_keywords != '' ? $oTag->seo_keywords : $oTag->name;
 	}
+}
+
+if($oInformationsystem->id == 0 && checkRestricted()){ // Подключение ИС к мете, если указан ID
 
 	if ($Informationsystem_Controller_Show->group && !$Informationsystem_Controller_Show->item)
 	{
@@ -168,43 +168,7 @@ if($oInformationsystem->id == 15){ // Подключение города к мете, если это ИС Акц
 			: $oInformationsystem_Item->name . ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP;
 	}
 
-
-	if ($Informationsystem_Controller_Show->page)
-	{
-		array_unshift($aTitle, $pageName . ' ' . ($Informationsystem_Controller_Show->page + 1));
-	}
-
-	if (count($aTitle))
-	{
-		$aTitle = array_reverse($aTitle);
-		$aDescription = array_reverse($aDescription);
-		$aKeywords = array_reverse($aKeywords);
-
-		Core_Page::instance()->title(implode($pageSeparator, $aTitle));
-		Core_Page::instance()->description(implode($pageSeparator, $aDescription));
-		Core_Page::instance()->keywords(implode($pageSeparator, $aKeywords));
-	}
-
-	Core_Page::instance()->object = $Informationsystem_Controller_Show;
-	
-	
-} else { // Показывать для всех остальных ИС, кроме акций
-	
-	
-	$aTitle = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oInformationsystem->name); // Добавлено название сайта из настроек CMS
-	$aDescription = array(htmlspecialchars(Core_Entity::factory('Site', CURRENT_SITE)->name), $oInformationsystem->name); // Добавлено название сайта из настроек CMS
-	$aKeywords = array();
-
-	if (!is_null($Informationsystem_Controller_Show->tag) && Core::moduleIsActive('tag'))
-	{
-		$oTag = Core_Entity::factory('Tag')->getByPath($Informationsystem_Controller_Show->tag);
-		if ($oTag)
-		{
-			$aTitle[] = $oTag->seo_title != '' ? $oTag->seo_title : Core::_('Informationsystem.tag', $oTag->name);
-			$aDescription[] = $oTag->seo_description != '' ? $oTag->seo_description : $oTag->name;
-			$aKeywords[] = $oTag->seo_keywords != '' ? $oTag->seo_keywords : $oTag->name;
-		}
-	}
+} else { // Показывать простой меты
 
 	if ($Informationsystem_Controller_Show->group && !$Informationsystem_Controller_Show->item)
 	{
@@ -238,24 +202,24 @@ if($oInformationsystem->id == 15){ // Подключение города к мете, если это ИС Акц
 		$aKeywords[] = $oInformationsystem_Item->seo_keywords != ''
 			? $oInformationsystem_Item->seo_keywords
 			: $oInformationsystem_Item->name;
-		
-	}
-	if ($Informationsystem_Controller_Show->page)
-	{
-		array_unshift($aTitle, $pageName . ' ' . ($Informationsystem_Controller_Show->page + 1));
-	}
 
-	if (count($aTitle))
-	{
-		$aTitle = array_reverse($aTitle);
-		$aDescription = array_reverse($aDescription);
-		$aKeywords = array_reverse($aKeywords);
-
-		Core_Page::instance()->title(implode($pageSeparator, $aTitle));
-		Core_Page::instance()->description(implode($pageSeparator, $aDescription));
-		Core_Page::instance()->keywords(implode($pageSeparator, $aKeywords));
 	}
-
-	Core_Page::instance()->object = $Informationsystem_Controller_Show;
 
 }
+if ($Informationsystem_Controller_Show->page)
+{
+	array_unshift($aTitle, $pageName . ' ' . ($Informationsystem_Controller_Show->page + 1));
+}
+
+if (count($aTitle))
+{
+	$aTitle = array_reverse($aTitle);
+	$aDescription = array_reverse($aDescription);
+	$aKeywords = array_reverse($aKeywords);
+
+	Core_Page::instance()->title(implode($pageSeparator, $aTitle));
+	Core_Page::instance()->description(implode($pageSeparator, $aDescription));
+	Core_Page::instance()->keywords(implode($pageSeparator, $aKeywords));
+}
+
+Core_Page::instance()->object = $Informationsystem_Controller_Show;

@@ -7,26 +7,31 @@ require $_SERVER['DOCUMENT_ROOT'].'/geo_module.php';
 	<head>
 
 		<?
-if (Core::moduleIsActive('shop') && isset(Core_Page::instance()->libParams['shopId'])) { // Проверка меты для магазина
-		?>
-		<title><?php Core_Page::instance()->showTitle();?></title>
-		<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
-		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
-
-		<?
-} else if(Core::moduleIsActive('informationsystem') && isset(Core_Page::instance()->libParams['informationsystemId'])) {  // Проверка меты для ИС
+			if (Core::moduleIsActive('shop') && isset(Core_Page::instance()->libParams['shopId'])) { // Проверка меты для магазина
 		?>
 		<title><?php Core_Page::instance()->showTitle();?></title>
 		<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
 		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
 		<?
-} else {  // Проверка меты для статики
+			} else if(Core::moduleIsActive('informationsystem') && isset(Core_Page::instance()->libParams['informationsystemId'])) {  // Проверка меты для ИС
+		?>
+		<title><?php Core_Page::instance()->showTitle();?></title>
+		<meta name="description" content="<?php Core_Page::instance()->showDescription();?>" />
+		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords()?>" />
+		<?
+			} else if(checkRestricted()) {  // Проверка меты для статики
 		?>
 		<title><?php Core_Page::instance()->showTitle(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?></title>
 		<meta name="description" content="<?php Core_Page::instance()->showDescription(); echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
 		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords();  echo ' ' . $prePhrase['phrase1'] . ' ' . $city_nameP; ?>" />
 		<?
-}
+			} else { // Вывод меты, если страница в стоп-листе
+		?>
+		<title><?php Core_Page::instance()->showTitle(); ?></title>
+		<meta name="description" content="<?php Core_Page::instance()->showDescription(); ?>" />
+		<meta name="keywords" content="<?php Core_Page::instance()->showKeywords(); ?>" />
+		<?
+			}
 		?>
 
 		<meta content="text/html; charset=<?php echo SITE_CODING?>" http-equiv="Content-Type" />
