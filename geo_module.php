@@ -1,13 +1,17 @@
 <?
+
+// define('DEFAULT_CITY', 'Москва'); // Дефолтный город
+
 $sIp = Core_Array::get($_SERVER, 'REMOTE_ADDR', Core_Array::get($_SERVER, 'HTTP_X_FORWARDED_FOR', '127.0.0.1'));
 if (!is_null($sIp)) // Проверяем, если модуль GeoIP получил данные
 	$oGeoData = Core_Geoip::instance()->getGeoData($sIp);
 	
 if (isset($_POST['city_choose'])) {$choosenCity = htmlspecialchars($_POST['city_choose']);}
 if (!empty($choosenCity)) {
-	setcookie('current_city', $choosenCity, time() + 3600 * 24 * 365, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 3)); // Установка куки на доменное имя
+	setcookie('current_city', $choosenCity, time() + 3600 * 24 * 365, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); // Установка куки на доменное имя
 }
 
+// Блок кода, отвечающий за присвоение города переменной $city_name для последующей работы с ней
 if (isset($_COOKIE['current_city'])){
 	$city_name = $_COOKIE['current_city']; // Если существуют куки, устанавливаем их
 }else{
@@ -28,48 +32,65 @@ function extractDomain($host, $level = 2, $ignoreWWW = FALSE) { //  Уровен
 }
 
 // Функция выделения поддомена сайта 
-function getSubDomain($host, $level = -2, $ignoreWWW = TRUE) { //  Уровень означает уровень домена - level.site.ru - результат: level. + Игнорировать www при получении поддомена
+function getSubDomain($host, $level = -2, $ignoreWWW = TRUE) { //  Уровень означает уровень домена - level.site.ru при $level = 3 - результат: level. + Игнорировать www при получении поддомена
 	$parts = explode('.', $host);
     if($ignoreWWW and $parts[0] == 'www') unset($parts[0]);
 	$parts = array_slice($parts, 0, $level);
 	return implode(".", $parts);
 }
 
+// CURL проверка доступности ресурса
+function isDomainAvailible($domain)
+{
+	//проверка на валидность урла
+	if(!filter_var($domain, FILTER_VALIDATE_URL)){
+		return false;
+	}
+	//инициализация curl
+	$curlInit = curl_init($domain);
+	curl_setopt($curlInit,CURLOPT_CONNECTTIMEOUT,10);
+	curl_setopt($curlInit,CURLOPT_HEADER,true);
+	curl_setopt($curlInit,CURLOPT_NOBODY,true);
+	curl_setopt($curlInit,CURLOPT_RETURNTRANSFER,true);
+	//получение ответа
+	$response = curl_exec($curlInit);
+	curl_close($curlInit);
+	if ($response && strpos($response,'200') > 0) return true;
+	return false;
+}
+
 // Функция склонение города с проверкой на доступность сервиса
 function morpher_inflect($text, $padeg)
 {
-	if (function_exists('get_headers')){ 
-		$check_url = get_headers('http://morpher.ru/');
-		if (strpos($check_url[0],'200')) {
-			$credentials = array('Username'=>'test', 
-								 'Password'=>'test');
-			$header = new SOAPHeader('http://morpher.ru/', 
+	if (isDomainAvailible('http://morpher.ru/')){
+		$credentials = array('Username'=>'test', 
+							 'Password'=>'test');
+		$header = new SOAPHeader('http://morpher.ru/', 
 								 'Credentials', $credentials);        
-			$url = 'http://morpher.ru/WebService.asmx?WSDL';
-			$client = new SoapClient($url); 
-			$client->__setSoapHeaders($header);
-			$params = array('parameters'=>array('s'=>$text));
-			$result = (array) $client->__soapCall('GetXml', $params); 
-			$singular = (array) $result['GetXmlResult']; 
-			return $singular[$padeg];
-		} else {
-			return false;
-		}
+		$url = 'http://morpher.ru/WebService.asmx?WSDL';
+		$client = new SoapClient($url); 
+		$client->__setSoapHeaders($header);
+		$params = array('parameters'=>array('s'=>$text));
+		$result = (array) $client->__soapCall('GetXml', $params); 
+		$singular = (array) $result['GetXmlResult']; 
+		return $singular[$padeg];
+	} else {
+		return false;
 	}
 }
 
 // Склонение города
-if (isset($city_name) || !is_null($oGeoData) && function_exists('morpher_inflect')){
+if (isset($city_name) || !is_null($oGeoData) && isDomainAvailible('http://morpher.ru/')){
 	$city_nameR = morpher_inflect($city_name, 'Р');
 	$city_nameP = morpher_inflect($city_name, 'П');
 } else {
-	$city_nameR = 'Москвы'; // Дефолтные города, если GeoIP и Морфер недоступен
+	$city_nameR = 'Москвы'; // Дефолтные города, если GeoIP или Морфер недоступен
 	$city_nameP = 'Москве';	
 }
 
 // Указывает, если был произведен переход на конкретный региональный поддомен, то там стоит выводить только конкретную мету
-if(getSubDomain($_SERVER['HTTP_HOST'], -3) != ''){
-	switch (getSubDomain($_SERVER['HTTP_HOST'], -3)) {
+if(getSubDomain($_SERVER['HTTP_HOST'], -2) != ''){
+	switch (getSubDomain($_SERVER['HTTP_HOST'], -2)) {
 		case 'bryansk' :
 			$city_nameR = morpher_inflect('Брянск', 'Р');
 			$city_nameP = morpher_inflect('Брянск', 'П');
@@ -86,37 +107,28 @@ if(getSubDomain($_SERVER['HTTP_HOST'], -3) != ''){
 
 // Постановка rel="canonical" для посетителя с региона на корневом домене
 function putRelCanonical($city_name){
-	if($_SERVER['HTTP_HOST'] == extractDomain ($_SERVER['HTTP_HOST'], 3)){ 
+	if($_SERVER['HTTP_HOST'] == extractDomain ($_SERVER['HTTP_HOST'], 2)){ 
 		switch ($city_name) {
 			case 'Брянск' :
-				echo "<link rel='canonical' href='http://bryansk.". extractDomain ($_SERVER['HTTP_HOST'], 3) ."' /> \n";
+				echo "<link rel='canonical' href='http://bryansk.". extractDomain ($_SERVER['HTTP_HOST'], 2) ."' /> \n";
 				break; 
 
-			case 'Санкт-Петербург' :
-				echo "<link rel='canonical' href='http://spb.". extractDomain ($_SERVER['HTTP_HOST'], 3) ."' /> \n";
-				break; 
 		}
 	}
 }
 
 // Функция редиректа на целевой домен: проверяет, если регион соответствует кукам или GeoIP и если пользователь находится не на домене, на который надо производить редирект, то выполняет переход по указанному адресу
 function changeDomain($region){
-	if(($region == 'Брянск') && ('http://'.$_SERVER['HTTP_HOST'] != 'http://bryansk.' . extractDomain ($_SERVER['HTTP_HOST'], 3)))
+	if(($region == 'Брянск') && ('http://'.$_SERVER['HTTP_HOST'] != 'http://bryansk.' . extractDomain ($_SERVER['HTTP_HOST'], 2)))
 	{	// Редирект на указанный поддомен для региона
 		header('HTTP/1.1 200 OK');
-		header('Location: http://bryansk.' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); 
+		header('Location: http://bryansk.' . extractDomain ($_SERVER['HTTP_HOST'], 2) . $_SERVER['REQUEST_URI'], true, 301); 
 		exit();		
 	} 
-	else if(($region == 'Санкт-Петербург') && ('http://'.$_SERVER['HTTP_HOST'] != 'http://spb.' . extractDomain ($_SERVER['HTTP_HOST'], 3))) 
-	{	// Редирект на указанный поддомен для региона
-		header('HTTP/1.1 200 OK');
-		header('Location: http://spb.' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); 
-		exit();
-	} 
-	else if(($region == 'Москва') && ('http://'.$_SERVER['HTTP_HOST'] != 'http://' . extractDomain ($_SERVER['HTTP_HOST'], 3))) 
+	else if(($region == 'Москва') && ('http://'.$_SERVER['HTTP_HOST'] != 'http://' . extractDomain ($_SERVER['HTTP_HOST'], 2))) 
 	{	// Редирект на корневой домен для Москвы
 		header('HTTP/1.1 200 OK');
-		header('Location: http://' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); 
+		header('Location: http://' . extractDomain ($_SERVER['HTTP_HOST'], 2) . $_SERVER['REQUEST_URI'], true, 301); 
 		exit();
 	}
 }
@@ -156,6 +168,6 @@ if (isset($_POST['city_choose'])){
 }
 
 // Если домен пользователя не совпадает с главной странице и у пользователя установлены куки, то выполняем редирект
-if(($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 3)) && isset($_COOKIE['current_city'])){ 
+if(($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 2)) && isset($_COOKIE['current_city'])){ 
 	changeDomain($_COOKIE['current_city']);
 } 
