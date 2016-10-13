@@ -105,12 +105,12 @@ if(getSubDomain($_SERVER['HTTP_HOST'], -2) != ''){
 	}
 }
 
-// Постановка rel="canonical" для посетителя с региона на корневом домене
+// Постановка rel="canonical" для посетителя с региона на корневом домене. Учитывает проверку на наличие ссылок в стоп-листе
 function putRelCanonical($city_name){
-	if($_SERVER['HTTP_HOST'] == extractDomain ($_SERVER['HTTP_HOST'], 2)){ 
+	if($_SERVER['HTTP_HOST'] == extractDomain ($_SERVER['HTTP_HOST'], 2) && checkRestricted()){ 
 		switch ($city_name) {
 			case 'Брянск' :
-				echo "<link rel='canonical' href='http://bryansk.". extractDomain ($_SERVER['HTTP_HOST'], 2) ."' /> \n";
+				echo "<link rel='canonical' href='http://bryansk.". extractDomain ($_SERVER['HTTP_HOST'], 2) . $_SERVER['REQUEST_URI'] ."' /> \n";
 				break; 
 
 		}
@@ -133,7 +133,7 @@ function changeDomain($region){
 	}
 }
 
-// Проверка, что страница не состоит в списке на невывод меты (функция больше не нужна после обновления версии 1.7)
+// Проверка, что страница не состоит в списке на невывод меты
 function checkRestricted() {
 	$found = 0;
 	if (file_exists("links.txt")){
@@ -141,7 +141,7 @@ function checkRestricted() {
 		$linksFile = file("links.txt", FILE_IGNORE_NEW_LINES);
 		if ($linksFile) {
 			foreach($linksFile as $row) {
-				if ($_SERVER['REQUEST_URI'] == $row){
+				if (strpos($_SERVER['REQUEST_URI'], $row) > 0){
 					$found = 1;
 					break;
 				}
