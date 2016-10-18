@@ -1,25 +1,34 @@
-<?
+<?php
+include($_SERVER['DOCUMENT_ROOT'].'/geoip/geo.php');
+define('DEFAULT_CITY', 'Москва'); // Дефолтный город
 
-// define('DEFAULT_CITY', 'Москва'); // Дефолтный город
+$o = array(); // Опции
+$o['charset'] = 'utf-8'; // Нужно указать требуемую кодировку, если она отличается от windows-1251
+$geo = new Geo($o); // Класс геопроверки
+$oGeoData = $geo->get_value('city', true); // Получение города по IP
 
-$sIp = Core_Array::get($_SERVER, 'REMOTE_ADDR', Core_Array::get($_SERVER, 'HTTP_X_FORWARDED_FOR', '127.0.0.1'));
-if (!is_null($sIp)) // Проверяем, если модуль GeoIP получил данные
-	$oGeoData = Core_Geoip::instance()->getGeoData($sIp);
-	
-if (isset($_POST['city_choose'])) {$choosenCity = htmlspecialchars($_POST['city_choose']);}
+// Создание кук для падежей
+setcookie('current_city_r', '', time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); 
+setcookie('current_city_p', '', time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); 
+
+// Если получен $_POST с названием города - записываем его в куки
+if (isset($_POST['city_choose'])) $choosenCity = htmlspecialchars($_POST['city_choose']);
 if (!empty($choosenCity)) {
-	setcookie('current_city', $choosenCity, time() + 3600 * 24 * 365, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 3)); // Установка куки на доменное имя
-}
+	setcookie('current_city', $choosenCity, time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); // Установка куки на доменное имя
+	setcookie('user_current_city', $choosenCity, time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); // Вносим город в данную куку, чтобы использовать только для редиректов при истории
+} 
 
 // Блок кода, отвечающий за присвоение города переменной $city_name для последующей работы с ней
 if (isset($_COOKIE['current_city'])){
 	$city_name = $_COOKIE['current_city']; // Если существуют куки, устанавливаем их
 }else{
-	if (!is_null($oGeoData))
+	if ($geo->get_value('country') == 'RU')
 	{
-		$city_name = Core_Entity::factory('Shop_Country_Location_City', $oGeoData->cityId)->name; // Если кук нет, показывам, что получил GeoIP
+		$city_name = $oGeoData;
+		$_COOKIE['current_city'] = $oGeoData; // Если кук нет, показываем, что получил GeoIP
 	}else{
-		$city_name = 'Москва'; // Если данных с GeoIP нет - выводим дефолтный город
+		$city_name = DEFAULT_CITY; 
+		$_COOKIE['current_city'] = DEFAULT_CITY; // Если данных с GeoIP нет - выводим дефолтный город
 	}
 }
 
@@ -32,7 +41,7 @@ function extractDomain($host, $level = 2, $ignoreWWW = FALSE) { //  Уровен
 }
 
 // Функция выделения поддомена сайта 
-function getSubDomain($host, $level = -2, $ignoreWWW = TRUE) { //  Уровень означает уровень домена - level.site.ru - результат: level. + Игнорировать www при получении поддомена
+function getSubDomain($host, $level = -2, $ignoreWWW = TRUE) { //  Уровень означает уровень домена - level.site.ru при $level = 3 - результат: level. + Игнорировать www при получении поддомена
 	$parts = explode('.', $host);
     if($ignoreWWW and $parts[0] == 'www') unset($parts[0]);
 	$parts = array_slice($parts, 0, $level);
@@ -80,41 +89,41 @@ function morpher_inflect($text, $padeg)
 }
 
 // Склонение города
-if (isset($city_name) || !is_null($oGeoData) && isDomainAvailible('http://morpher.ru/')){
-	$city_nameR = morpher_inflect($city_name, 'Р');
-	$city_nameP = morpher_inflect($city_name, 'П');
+if (isset($city_name) && isDomainAvailible('http://morpher.ru/')){
+	$_COOKIE['current_city_r'] = morpher_inflect($city_name, 'Р');
+	$_COOKIE['current_city_p'] = morpher_inflect($city_name, 'П');
 } else {
-	$city_nameR = 'Москвы'; // Дефолтные города, если GeoIP и Морфер недоступен
-	$city_nameP = 'Москве';	
+	$_COOKIE['current_city_r'] = 'Москвы'; // Дефолтные города Морфер недоступен
+	$_COOKIE['current_city_p'] = 'Москве';	
 }
 
 // Указывает, если был произведен переход на конкретный региональный поддомен, то там стоит выводить только конкретную мету
 if(getSubDomain($_SERVER['HTTP_HOST'], -3) != ''){
 	switch (getSubDomain($_SERVER['HTTP_HOST'], -3)) {
 		case 'bryansk' :
-			$city_nameR = morpher_inflect('Брянск', 'Р');
-			$city_nameP = morpher_inflect('Брянск', 'П');
-			$city_name = 'Брянск';
+			$_COOKIE['current_city_r'] = morpher_inflect('Брянск', 'Р');
+			$_COOKIE['current_city_p'] = morpher_inflect('Брянск', 'П');
+			$_COOKIE['current_city'] = 'Брянск';
 			break; 
 
 		case 'spb' :
-			$city_nameR = morpher_inflect('Санкт-Петербург', 'Р');
-			$city_nameP = morpher_inflect('Санкт-Петербург', 'П');
-			$city_name = 'Санкт-Петербург';
+			$_COOKIE['current_city_r'] = morpher_inflect('Санкт-Петербург', 'Р');
+			$_COOKIE['current_city_p'] = morpher_inflect('Санкт-Петербург', 'П');
+			$_COOKIE['current_city'] = 'Санкт-Петербург';
 			break; 
 	}
 }
 
-// Постановка rel="canonical" для посетителя с региона на корневом домене
+// Постановка rel="canonical" для посетителя с региона на корневом домене. Учитывает проверку на наличие ссылок в стоп-листе
 function putRelCanonical($city_name){
-	if($_SERVER['HTTP_HOST'] == extractDomain ($_SERVER['HTTP_HOST'], 3)){ 
+	if($_SERVER['HTTP_HOST'] == 'www.'.extractDomain ($_SERVER['HTTP_HOST'], 2) && checkRestricted()){ 
 		switch ($city_name) {
 			case 'Брянск' :
-				echo "<link rel='canonical' href='http://bryansk.". extractDomain ($_SERVER['HTTP_HOST'], 3) ."' /> \n";
+				echo "<link rel='canonical' href='http://www.bryansk.". extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'] ."' /> \n";
 				break; 
 
 			case 'Санкт-Петербург' :
-				echo "<link rel='canonical' href='http://spb.". extractDomain ($_SERVER['HTTP_HOST'], 3) ."' /> \n";
+				echo "<link rel='canonical' href='http://www.spb.". extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'] ."' /> \n";
 				break; 
 		}
 	}
@@ -140,9 +149,16 @@ function changeDomain($region){
 		header('Location: http://' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); 
 		exit();
 	}
+	else if(($region != '') && ('http://'.$_SERVER['HTTP_HOST'] == 'http://' . extractDomain ($_SERVER['HTTP_HOST'], 2)))  
+	{	// Перезагрузка страницы, если находимся на домене, который соответствует региону по-умолчанию и хотим переключиться на регион по-умолчанию, будучи на другом регионе.
+		// Пример: Есть домен site.ru его регион по-умолчанию Москва. Но мы сейчас определены как Брянск. И хотим переключить регион на Москва
+		header('HTTP/1.1 200 OK');
+		header('Location: http://' . extractDomain ($_SERVER['HTTP_HOST'], 3) . $_SERVER['REQUEST_URI'], true, 301); 
+		exit();
+	}
 }
 
-// Проверка, что страница не состоит в списке на невывод меты (функция больше не нужна после обновления версии 1.7)
+// Проверка, что страница не состоит в списке на невывод меты
 function checkRestricted() {
 	$found = 0;
 	if (file_exists("links.txt")){
@@ -150,7 +166,7 @@ function checkRestricted() {
 		$linksFile = file("links.txt", FILE_IGNORE_NEW_LINES);
 		if ($linksFile) {
 			foreach($linksFile as $row) {
-				if ($_SERVER['REQUEST_URI'] == $row){
+				if (strpos($_SERVER['REQUEST_URI'], $row) > 0){
 					$found = 1;
 					break;
 				}
@@ -176,7 +192,7 @@ if (isset($_POST['city_choose'])){
 	changeDomain($choosenCity);
 }
 
-// Если домен пользователя не совпадает с главной странице и у пользователя установлены куки, то выполняем редирект
-if(($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 3)) && isset($_COOKIE['current_city'])){ 
-	changeDomain($_COOKIE['current_city']);
+// Если домен пользователя не совпадает с главной страницей и у пользователя установлены специальные куки, то выполняем редирект
+if(($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 2)) && isset($_COOKIE['user_current_city'])){ 
+	changeDomain($_COOKIE['user_current_city']);
 } 
