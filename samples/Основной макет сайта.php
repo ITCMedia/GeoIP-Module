@@ -1,5 +1,7 @@
 <?
-require $_SERVER['DOCUMENT_ROOT'].'/geo_module.php';
+if(isset($_COOKIE['current_city'])) $city_name = $_COOKIE['current_city'];
+if(isset($_COOKIE['current_city_r'])) $city_nameR = $_COOKIE['current_city_r'];
+if(isset($_COOKIE['current_city_p'])) $city_nameP = $_COOKIE['current_city_p'];
 ?>
 
 <!DOCTYPE HTML>

@@ -1,3 +1,2 @@
-/dilery/
-/otzyvy/
-/kontakty/
+our_work
+news
