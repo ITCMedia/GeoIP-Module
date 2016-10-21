@@ -1,7 +1,6 @@
 <?php
 include($_SERVER['DOCUMENT_ROOT'].'/geoip/geo.php');
 define('DEFAULT_CITY', 'Москва'); // Дефолтный город
-
 $o = array(); // Опции
 $o['charset'] = 'utf-8'; // Нужно указать требуемую кодировку, если она отличается от windows-1251
 $geo = new Geo($o); // Класс геопроверки
@@ -14,6 +13,7 @@ setcookie('current_city_p', '', time() + 3600 * 24 * 7, '/', '.'.extractDomain (
 // Если получен $_POST с названием города - записываем его в куки
 if (isset($_POST['city_choose'])) $choosenCity = htmlspecialchars($_POST['city_choose']);
 if (!empty($choosenCity)) {
+	if($choosenCity == 'Другой город') $choosenCity = DEFAULT_CITY; // Если пользователем выбран "Другой город", то устанавливается регион по-умолчанию
 	setcookie('current_city', $choosenCity, time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); // Установка куки на доменное имя
 	setcookie('user_current_city', $choosenCity, time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); // Вносим город в данную куку, чтобы использовать только для редиректов при истории
 } 
