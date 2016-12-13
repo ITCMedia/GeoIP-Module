@@ -16,6 +16,8 @@ if (!empty($choosenCity)) {
 	if($choosenCity == 'Другой город') $choosenCity = DEFAULT_CITY; // Если пользователем выбран "Другой город", то устанавливается регион по-умолчанию
 	setcookie('current_city', $choosenCity, time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); // Установка куки на доменное имя
 	setcookie('user_current_city', $choosenCity, time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); // Вносим город в данную куку, чтобы использовать только для редиректов при истории
+	$_COOKIE['current_city'] = $choosenCity; 
+	$_COOKIE['user_current_city'] = $choosenCity; 
 } 
 
 // Блок кода, отвечающий за присвоение города переменной $city_name для последующей работы с ней
