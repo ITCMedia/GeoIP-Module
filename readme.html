@@ -134,7 +134,7 @@ $Shop_Controller_Show->addEntity(
 <?
 if($key == 'geoip_city') {
 	$body .= "Город пользователя: ";
-	$body .= htmlspecialchars($value);
+	$body .= addslashes($value);
 	$body .= "\n<br>";
 }	
 ?>

@@ -11,7 +11,7 @@ setcookie('current_city_r', '', time() + 3600 * 24 * 7, '/', '.'.extractDomain (
 setcookie('current_city_p', '', time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); 
 
 // Если получен $_POST с названием города - записываем его в куки
-if (isset($_POST['city_choose'])) $choosenCity = htmlspecialchars($_POST['city_choose']);
+if (isset($_POST['city_choose'])) $choosenCity = addslashes($_POST['city_choose']);
 if (!empty($choosenCity)) {
 	if($choosenCity == 'Другой город') $choosenCity = DEFAULT_CITY; // Если пользователем выбран "Другой город", то устанавливается регион по-умолчанию
 	setcookie('current_city', $choosenCity, time() + 3600 * 24 * 7, '/', '.'.extractDomain ($_SERVER['HTTP_HOST'], 2)); // Установка куки на доменное имя
@@ -194,7 +194,13 @@ if (isset($_POST['city_choose'])){
 	changeDomain($choosenCity);
 }
 
-// Если домен пользователя не совпадает с главной страницей и у пользователя установлены специальные куки, то выполняем редирект
-if(($_SERVER['HTTP_HOST'] != extractDomain ($_SERVER['HTTP_HOST'], 2)) && isset($_COOKIE['user_current_city'])){ 
+// Если у пользователя установлены специальные куки и домен пользователя совпадает с корневым доменом, то выполняем редирект
+if(($_SERVER['HTTP_HOST'] == extractDomain($_SERVER['HTTP_HOST'], 2)) && isset($_COOKIE['user_current_city'])){ 
 	changeDomain($_COOKIE['user_current_city']);
 } 
+
+// С версии 2.0.2 в данном участке используется другой код.
+// Если домен пользователя не совпадает с главной страницей и у пользователя установлены специальные куки, то выполняем редирект
+//if(($_SERVER['HTTP_HOST'] != extractDomain($_SERVER['HTTP_HOST'], 2)) && isset($_COOKIE['user_current_city'])){ 
+	// changeDomain($_COOKIE['user_current_city']);
+// }
